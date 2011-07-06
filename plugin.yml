@@ -1,0 +1,11 @@
+name: MCNSAChat
+main: com.hamaluik.MCNSAChat.MCNSAChat
+version: 1.0.0
+author: FuzzyWuzzie
+depend: [Permissions, iChat]
+commands:
+   ch:
+      description: use chat channel commands
+      usage: |
+            usage:
+                /ch help
