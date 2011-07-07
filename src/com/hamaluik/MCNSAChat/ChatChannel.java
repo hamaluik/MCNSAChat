@@ -251,7 +251,7 @@ public class ChatChannel implements Serializable {
 			// using classic server protocol colour codes
 			// (&c for light red, etc)
 			if(plugin.hasPermission(player, "mcnsachat.chatcolour") || plugin.hasPermission(player, "mcnsachat.chatcolour")) {
-				plugin.sendMessage(listener, "<&"+ Integer.toHexString(colour) + this.channelName + "&f> " + message);
+				plugin.sendMessage(listener, "<&"+ Integer.toHexString(colour) + this.channelName + "&f> " + message.replace("^", "&"));
 			}
 			else {
 				plugin.sendMessageNoColour(listener, "<\u00A7"+ Integer.toHexString(colour) + this.channelName + "\u00A7f> " + message);
