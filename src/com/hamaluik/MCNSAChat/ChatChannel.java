@@ -182,7 +182,7 @@ public class ChatChannel implements Serializable {
 		
 		// FUCK IT ALL
 		// quadruple check to make sure they have perms to be here
-		HashSet<String> finalListeners = new HashSet<String>();
+		/*HashSet<String> finalListeners = new HashSet<String>();
 		if(permissions.size() > 0 && !broadcast) {
 			itrA = listeners.iterator();
 			while(itrA.hasNext()) {
@@ -204,7 +204,8 @@ public class ChatChannel implements Serializable {
 			finalListeners.addAll(listeners);
 		}
 		
-		return finalListeners;
+		return finalListeners;*/
+		return listeners;
 	}
 	
 	public void chat(MCNSAChat plugin, Player player, String message) {
@@ -250,12 +251,7 @@ public class ChatChannel implements Serializable {
 			// check if they have permission to add colour to their chat
 			// using classic server protocol colour codes
 			// (&c for light red, etc)
-			if(plugin.hasPermission(player, "mcnsachat.chatcolour") || plugin.hasPermission(player, "mcnsachat.chatcolour")) {
-				plugin.sendMessage(listener, "<&"+ Integer.toHexString(colour) + this.channelName + "&f> " + message.replace("^", "&"));
-			}
-			else {
-				plugin.sendMessageNoColour(listener, "<\u00A7"+ Integer.toHexString(colour) + this.channelName + "\u00A7f> " + message);
-			}
+			plugin.sendMessageNoColour(listener, "<\u00A7"+ Integer.toHexString(colour) + this.channelName + "\u00A7f> " + message);
 		}
 		
 		plugin.log.info("<"+this.channelName+"> " + message);

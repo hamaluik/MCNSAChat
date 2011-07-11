@@ -52,8 +52,7 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					plugin.sendMessage(playerName, "&9Chat channels:");
 					String channelsListString = new String("");
 					boolean first = true;
-					boolean hasPerms = true;
-					for(String key: plugin.channels.keySet()) {						
+					for(String key: plugin.channels.keySet()) {					
 						// clear any stupid channels
 						if(plugin.getChannel(key).channelName.equals("") || (plugin.getChannel(key).players.size() < 1 && !plugin.getChannel(key).persistant)) {
 							plugin.removeChannel(key);
@@ -62,6 +61,7 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 						
 						// filter for permissions
 						// if the player doesn't have permission to see everything
+						boolean hasPerms = true;
 						if(!plugin.hasPermission(player, "mcnsachat.listall")) {
 							if(plugin.getChannel(key).permissions.size() > 0) {
 								// ok, the channel DOES have permisssions, let's see if we have them
