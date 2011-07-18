@@ -181,6 +181,7 @@ public class ChatChannel implements Serializable {
 		}
 		
 		// FUCK IT ALL
+		// NO, ACTUALLY, FUCK 
 		// quadruple check to make sure they have perms to be here
 		/*HashSet<String> finalListeners = new HashSet<String>();
 		if(permissions.size() > 0 && !broadcast) {
@@ -357,8 +358,8 @@ public class ChatChannel implements Serializable {
 			if(plugin.getServer().getPlayer(listener) != null) {
 				// player is online!
 				// make sure they're not poofed!
-				if(!plugin.getPlayer(listener).poofed) {
-					playersString = playersString + ((first) ? "&7" : "&f, &7") + listener;
+				if(!plugin.getPlayer(listener).poofed || defaultListeners.contains(listener)) {
+					playersString = playersString + ((first) ? "&7" : "&f, &7") + listener + ((plugin.getPlayer(listener).poofed) ? ("&b*") : (""));
 					if(first) {
 						first = false;
 					}

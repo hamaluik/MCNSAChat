@@ -107,8 +107,8 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					while(itr.hasNext()) {
 						String listener = itr.next();
 						// make sure they're not poofed
-						if(!plugin.getPlayer(listener).poofed) {
-							namesList = namesList + ((first)?("&7"):("&f, &7")) + listener;
+						if(!plugin.getPlayer(listener).poofed || plugin.getChannel(plugin.getPlayer(player).channel).defaultListeners.contains(listener)) {
+							namesList = namesList + ((first)?("&7"):("&f, &7")) + listener + ((plugin.getPlayer(listener).poofed) ? ("&b*") : (""));
 							if(first) {
 								first = false;
 							}
@@ -601,6 +601,24 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 						return true;
 					}
 					
+					if(args.length != 2 && args.length != 3) {
+						plugin.sendMessage(player, "&cIncorrect usage!");
+						return true;
+					}
+					
+					// see if we're listing instead of timeouting
+					if(args[1].equalsIgnoreCase("list")) {
+						plugin.sendMessage(player, "&3Players on timeouts:");
+						String message = new String("");
+						for(String key: plugin.players.keySet()) {
+							if(plugin.getPlayer(key).onTimeout) {
+								message += "&f" + key + "&b (" + String.format("%.2f", (((float)((plugin.getPlayer(key).timeoutLength - ((System.currentTimeMillis() / 1000) - plugin.getPlayer(key).timeoutBegin)))) / 60)) + "m), ";
+							}
+						}
+						plugin.sendMessage(player, message);
+						return true;
+					}
+					
 					if(args.length != 3) {
 						plugin.sendMessage(player, "&cIncorrect usage!");
 						return true;
@@ -644,7 +662,7 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					plugin.getPlayer(targetPlayer).timeoutLength = 60 * timeoutTime;
 					
 					// notify!
-					plugin.sendMessage(player, "&7" + targetPlayer + "&b has been put in timeout for " + timeoutTime + " minutes!");
+					//plugin.sendMessage(player, "&7" + targetPlayer + "&b has been put in timeout for " + timeoutTime + " minutes!");
 					plugin.sendMessage(targetPlayer, "&7" + playerName + "&b has put you in timeout for " + timeoutTime + " minutes!");
 					plugin.log.info("[MCNSAChat] " + playerName + " has put " + targetPlayer + " in timeout for " + timeoutTime + " minutes");
 					
@@ -693,9 +711,15 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					plugin.getPlayer(targetPlayer).timeoutLength = -1;
 
 					// notify
-					plugin.sendMessage(player, "&f" + targetPlayer + "&b has been pulled from their timeout!");
-					plugin.sendMessage(targetPlayer, "&f" + playerName + "&b has pulled you from your timeout! You can talk again!");
+					//plugin.sendMessage(player, "&f" + targetPlayer + "&b has been pulled from their timeout!");
+					plugin.sendMessage(targetPlayer, "&7" + playerName + "&b has pulled you from your timeout! You can talk again!");
 					plugin.log.info("[MCNSAChat] " + playerName + " has pulled " + targetPlayer + " from their timeout");
+					if(plugin.announceTimeouts) {
+						Player[] onlinePlayers = plugin.getServer().getOnlinePlayers();
+						for(int i = 0; i < onlinePlayers.length; i++) {
+							plugin.sendMessage(onlinePlayers[i], "&7" + targetPlayer + "&b has been pulled from their timeout!");
+						}
+					}
 					
 					return true;
 				}
@@ -1005,6 +1029,9 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 			}
 			if(plugin.hasPermission(player, "mcnsachat.timeout")) {
 				helpList.add(new HelpItem("&3/ch &btimeout &f<player> &f<minutes>", "&7Puts &f<player> &7in timeout (cannot talk) for &f<minutes> &7minutes"));
+			}
+			if(plugin.hasPermission(player, "mcnsachat.timeout")) {
+				helpList.add(new HelpItem("&3/ch &btimeout &flist", "&7Lists all players who are current in timeouts"));
 			}
 			if(plugin.hasPermission(player, "mcnsachat.timeout")) {
 				helpList.add(new HelpItem("&3/ch &buntimeout &f<player>", "&7Removes &f<player> &7from timeout early"));
