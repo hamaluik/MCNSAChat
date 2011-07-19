@@ -148,8 +148,21 @@ public class MCNSAChatPlayerListener extends PlayerListener {
 			// we'll handle it from here.
 			event.setCancelled(true);
 		}
+		if(event.getMessage().startsWith("/msg ") || event.getMessage().startsWith("/r ") || event.getMessage().startsWith("/tell ")) {
+			// grab the player
+			Player player = event.getPlayer();
+			
+			// make sure they're not on timeout
+			if(plugin.getPlayer(player).onTimeout) {
+				// they're on timeout
+				// tell them how much time they left here
+				plugin.sendMessage(player, "&cYou're still in timeout for " + String.format("%.2f", (((float)((plugin.getPlayer(player).timeoutLength - ((System.currentTimeMillis() / 1000) - plugin.getPlayer(player).timeoutBegin)))) / 60)) + " more minutes and cannot talk!");
+				event.setCancelled(true);
+				return;
+			}
+		}
 		
-		// ok, not a /me
+		// ok, not a /me or a msg
 		// but we can check for aliases!
 		// note that we have to check for them here instead of registering
 		// commands, since all commands normally have to be defined in plugin.yml
