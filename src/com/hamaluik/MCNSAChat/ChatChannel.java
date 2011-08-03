@@ -210,6 +210,35 @@ public class ChatChannel implements Serializable {
 	}
 	
 	public void chat(MCNSAChat plugin, Player player, String message) {
+		// make sure they're not spamming
+		if(plugin.checkForSpam(player.getName())) {
+			// they ARE spamming :/
+			// send them to timeout if they're not already in it
+			if(!plugin.getPlayer(player).onTimeout) {
+				// create the timer!
+				plugin.getPlayer(player).timeoutBegin = System.currentTimeMillis() / 1000;
+				if(plugin.playerTimers.containsKey(player)) {
+					plugin.playerTimers.remove(player);
+				}
+				plugin.getPlayerTimer(player).schedule(new MCNSAChatUnTimeoutTask(plugin, player.getName()), (60000 * (long)plugin.spamTimeoutTime));
+				plugin.getPlayer(player).onTimeout = true;
+				plugin.getPlayer(player).timeoutLength = 60 * plugin.spamTimeoutTime;
+				
+				// notify!
+				plugin.log.info("[MCNSAChat] " + player.getName() + " has been sent to timeout for " + plugin.spamTimeoutTime + " minutes for spamming");
+				
+				// if we're announcing to the server, do so!
+				if(plugin.announceTimeouts) {
+					Player[] onlinePlayers = plugin.getServer().getOnlinePlayers();
+					for(int i = 0; i < onlinePlayers.length; i++) {
+						plugin.sendMessage(onlinePlayers[i], "&7" + player.getName() + " &bhas been sent to timeout for &7" + plugin.spamTimeoutTime + " &bminutes for spamming");
+					}
+				}
+			}
+			// don't let them chat
+			return;
+		}
+		
 		// get all the listeners..
 		HashSet<String> listeners = getListeners(plugin, player);
 		
@@ -259,6 +288,35 @@ public class ChatChannel implements Serializable {
 	}
 	
 	public void emote(MCNSAChat plugin, Player player, String message) {
+		// make sure they're not spamming
+		if(plugin.checkForSpam(player.getName())) {
+			// they ARE spamming :/
+			// send them to timeout if they're not already in it
+			if(!plugin.getPlayer(player).onTimeout) {
+				// create the timer!
+				plugin.getPlayer(player).timeoutBegin = System.currentTimeMillis() / 1000;
+				if(plugin.playerTimers.containsKey(player)) {
+					plugin.playerTimers.remove(player);
+				}
+				plugin.getPlayerTimer(player).schedule(new MCNSAChatUnTimeoutTask(plugin, player.getName()), (60000 * (long)plugin.spamTimeoutTime));
+				plugin.getPlayer(player).onTimeout = true;
+				plugin.getPlayer(player).timeoutLength = 60 * plugin.spamTimeoutTime;
+				
+				// notify!
+				plugin.log.info("[MCNSAChat] " + player.getName() + " has been sent to timeout for " + plugin.spamTimeoutTime + " minutes for spamming");
+				
+				// if we're announcing to the server, do so!
+				if(plugin.announceTimeouts) {
+					Player[] onlinePlayers = plugin.getServer().getOnlinePlayers();
+					for(int i = 0; i < onlinePlayers.length; i++) {
+						plugin.sendMessage(onlinePlayers[i], "&7" + player.getName() + " &bhas been sent to timeout for &7" + plugin.spamTimeoutTime + " &bminutes for spamming");
+					}
+				}
+			}
+			// don't let them chat
+			return;
+		}
+		
 		// get all the listeners..
 		HashSet<String> listeners = getListeners(plugin, player);
 		
@@ -358,7 +416,7 @@ public class ChatChannel implements Serializable {
 			if(plugin.getServer().getPlayer(listener) != null) {
 				// player is online!
 				// make sure they're not poofed!
-				if(!plugin.getPlayer(listener).poofed || defaultListeners.contains(listener)) {
+				if(!plugin.getPlayer(listener).poofed || plugin.hasPermission(player, "mcnsachat.poof")) {
 					playersString = playersString + ((first) ? "&7" : "&f, &7") + listener + ((plugin.getPlayer(listener).poofed) ? ("&b*") : (""));
 					if(first) {
 						first = false;

@@ -32,6 +32,9 @@ public class MCNSAChatPlayerListener extends PlayerListener {
 		}
 		
 		plugin.log.info("[MCNSAChat] " + player.getName() + " will be joining channel: '"+channelName+"'");
+		if(plugin.hideConnectDisconnect) {
+			event.setJoinMessage("");
+		}
 		
 		// add them back to their channel
 		// if their channel was destroyed when they left
@@ -66,6 +69,10 @@ public class MCNSAChatPlayerListener extends PlayerListener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		
+		if(plugin.hideConnectDisconnect) {
+			event.setQuitMessage("");
+		}
+		
 		// remove them from the channel!
 		String channelName = new String(plugin.getPlayer(player).channel);
 		plugin.getChannel(channelName).removePlayer(plugin, player, false);
@@ -85,11 +92,7 @@ public class MCNSAChatPlayerListener extends PlayerListener {
 	}
 
 	@Override
-	public void onPlayerChat(PlayerChatEvent event) {
-		if(event.isCancelled()) {
-			return;
-		}
-		
+	public void onPlayerChat(PlayerChatEvent event) {		
 		// grab the player
 		Player player = event.getPlayer();
 		
@@ -120,11 +123,7 @@ public class MCNSAChatPlayerListener extends PlayerListener {
 	}
 	
 	@Override
-	public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-		if(event.isCancelled()) {
-			return;
-		}
-		
+	public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {		
 		// make sure it's a /me command
 		if(event.getMessage().startsWith("/me ")) {
 			// grab the player
@@ -135,6 +134,7 @@ public class MCNSAChatPlayerListener extends PlayerListener {
 				// they're on timeout
 				// tell them how much time they left here
 				plugin.sendMessage(player, "&cYou're still in timeout for " + String.format("%.2f", (((float)((plugin.getPlayer(player).timeoutLength - ((System.currentTimeMillis() / 1000) - plugin.getPlayer(player).timeoutBegin)))) / 60)) + " more minutes and cannot talk!");
+				event.setMessage("");
 				event.setCancelled(true);
 				return;
 			}

@@ -107,7 +107,7 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					while(itr.hasNext()) {
 						String listener = itr.next();
 						// make sure they're not poofed
-						if(!plugin.getPlayer(listener).poofed || plugin.getChannel(plugin.getPlayer(player).channel).defaultListeners.contains(listener)) {
+						if(!plugin.getPlayer(listener).poofed || plugin.hasPermission(player, "mcnsachat.poof")) {
 							namesList = namesList + ((first)?("&7"):("&f, &7")) + listener + ((plugin.getPlayer(listener).poofed) ? ("&b*") : (""));
 							if(first) {
 								first = false;
@@ -640,13 +640,14 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					
 					int timeoutTime = 0;
 					try {
-						timeoutTime = Integer.parseInt(args[2]);	
+						timeoutTime = Integer.parseInt(args[2]);
 					}
 					catch(Exception e) {
 						plugin.sendMessage(player, "&cThat is not a valid timeframe!");
 						return true;
 					}
-					if(timeoutTime < 1) {
+					
+					if((60000 * (long)timeoutTime) < 1) {
 						plugin.sendMessage(player, "&cThat is not a valid timeframe!");
 						return true;
 					}
@@ -657,7 +658,7 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					if(plugin.playerTimers.containsKey(targetPlayer)) {
 						plugin.playerTimers.remove(targetPlayer);
 					}
-					plugin.getPlayerTimer(targetPlayer).schedule(new MCNSAChatUnTimeoutTask(plugin, targetPlayer), 60000 * timeoutTime);
+					plugin.getPlayerTimer(targetPlayer).schedule(new MCNSAChatUnTimeoutTask(plugin, targetPlayer), (60000 * (long)timeoutTime));
 					plugin.getPlayer(targetPlayer).onTimeout = true;
 					plugin.getPlayer(targetPlayer).timeoutLength = 60 * timeoutTime;
 					
@@ -758,6 +759,22 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 					
 					// and we're done!
 					plugin.sendMessage(player, "&5MCNSA Chat has been reset!");
+					return true;
+				}
+				else if(args[0].equalsIgnoreCase("toggleconnect")) {
+					if(plugin.hasPermission(player, "mcnsachat.toggleconnect")) {
+						plugin.hideConnectDisconnect = !plugin.hideConnectDisconnect;
+						if(!plugin.hideConnectDisconnect) {
+							plugin.sendMessage(player, "&aConnect / disconnect messages enabled!");
+						}
+						else {
+							plugin.sendMessage(player, "&cConnect / disconnect messages disabled!");
+						}
+					}
+					else {
+						plugin.sendMessage(playerName, "&cYou don't have permission to do that!");
+					}
+					
 					return true;
 				}
 				else if(args[0].equalsIgnoreCase("help")) {
@@ -1035,6 +1052,9 @@ public class MCNSAChatCommandExecutor implements CommandExecutor {
 			}
 			if(plugin.hasPermission(player, "mcnsachat.timeout")) {
 				helpList.add(new HelpItem("&3/ch &buntimeout &f<player>", "&7Removes &f<player> &7from timeout early"));
+			}
+			if(plugin.hasPermission(player, "mcnsachat.toggleconnect")) {
+				helpList.add(new HelpItem("&3/ch &btoggleconnect", "&7Toggles player connect/disconnect notifications"));
 			}
 			
 			// get the total number of pages this person can see

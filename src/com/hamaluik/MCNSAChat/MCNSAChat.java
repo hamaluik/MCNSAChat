@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -40,11 +41,16 @@ public class MCNSAChat extends JavaPlugin {
 	public ConcurrentHashMap<String, String> aliases = new ConcurrentHashMap<String, String>();
 	public ConcurrentHashMap<String, Integer> colours = new ConcurrentHashMap<String, Integer>();
 	public ConcurrentHashMap<String, Timer> playerTimers = new ConcurrentHashMap<String, Timer>(); // store these here instead of in each player because they are not serializable
+	public ConcurrentHashMap<String, ArrayDeque<Long>> playerChatTimes = new ConcurrentHashMap<String, ArrayDeque<Long>>();
 	public Integer localChatRadius = 200;
 	public String defaultChannel = "G";
 	public Integer defaultColour = 7;
 	public boolean hideJoinLeave = false;
+	public boolean hideConnectDisconnect = false;
 	public boolean announceTimeouts = true;
+	public int spamMessageLimit = 5;
+	public int spamMessagePeriod = 3000;
+	public int spamTimeoutTime = 5;
 	
 	// startup routine..
 	@SuppressWarnings("unchecked")
@@ -85,13 +91,14 @@ public class MCNSAChat extends JavaPlugin {
 		PluginManager pm = this.getServer().getPluginManager();
 		
 		// listen for events..
-		pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Event.Priority.Normal, this);
-		pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Event.Priority.Lowest, this);
+		pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Event.Priority.Lowest, this);
 		pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Event.Priority.Highest, this);
-		pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Highest, this);
+		pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Event.Priority.Lowest, this);
 		pm.registerEvent(Event.Type.WORLD_SAVE, worldListener, Event.Priority.Normal, this);
 		
 		// register commands
+		this.getCommand("me").setExecutor(commandExecutor);
 		this.getCommand("ch").setExecutor(commandExecutor);
 		
 		// log startup information
@@ -215,6 +222,9 @@ public class MCNSAChat extends JavaPlugin {
 		}
 		this.hideJoinLeave = config.getBoolean("hide-join-leave-messages", false);
 		this.announceTimeouts = config.getBoolean("announce-timeouts", true);
+		this.spamMessageLimit = config.getInt("spam-message-limit", 5);
+		this.spamMessagePeriod = config.getInt("spam-message-period", 3) * 1000;
+		this.spamTimeoutTime = config.getInt("spam-timeout-time", 5);
 		
 		// load the default channels
 		List<ConfigurationNode> defaultChannels = config.getNodeList("default-channels", null);
@@ -402,6 +412,31 @@ public class MCNSAChat extends JavaPlugin {
 				}
 			}
 		}
+		return false;
+	}
+	
+	public boolean checkForSpam(String player) {
+		long now = System.currentTimeMillis();
+		
+		// get the chat times for the player
+		ArrayDeque<Long> times = new ArrayDeque<Long>();
+		if(playerChatTimes.containsKey(player)) times.addAll(playerChatTimes.get(player));
+		
+		// push the talk time to the queue
+		times.add(now);
+		// pop the head off if necessary
+		if(times.size() > spamMessageLimit) {
+			times.remove();
+		}
+		// put it back into the map
+		playerChatTimes.put(player, times);
+		
+		// now check to see if they're spamming!
+		if(times.size() == spamMessageLimit && times.getLast() - times.getFirst() < spamMessagePeriod) {
+			// they ARE spamming!
+			return true;
+		}
+		
 		return false;
 	}
 }
